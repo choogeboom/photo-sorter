@@ -8,16 +8,6 @@ import photo_sorter as ps
 test_file_dir = pl.Path('tests/files')
 
 
-def _copy(self, target):
-    import shutil
-    assert self.is_file()
-    shutil.copy(self, target)
-
-
-# noinspection PyUnresolvedReferences
-pl.Path.copy = _copy
-
-
 @pytest.fixture(scope='function', name='image_tempdir')
 def make_image_tempdir(tmpdir: py.path.local) -> pl.Path:
     return pl.Path(tmpdir.mkdir('photos'))
@@ -73,13 +63,17 @@ def test_sort_image(image_tempdir: pl.Path,
     assert ps.sort_file(new_path, image_tempdir) == new_path
 
 
-def count_files(path: pl.Path):
+def count_files(path: pl.Path, include_directories=False):
+    dir_offset = 1 if include_directories else 0
     if path.is_dir():
-        return sum(count_files(p) for p in path.iterdir())
+        return sum(count_files(p, include_directories)
+                   for p in path.iterdir()) + dir_offset
     else:
         return 1
 
 
 def test_sort_directory(unsorted_tempdir: pl.Path, image_tempdir: pl.Path):
     ps.sort_directory(unsorted_tempdir, image_tempdir)
+    assert count_files(image_tempdir) == 7
+    assert count_files(image_tempdir, True) == 23
 

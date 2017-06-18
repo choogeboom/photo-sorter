@@ -1,6 +1,7 @@
 import os
-import pathlib as pl
 import datetime
+import logging
+import pathlib as pl
 import re
 from typing import Union, TypeVar
 
@@ -10,11 +11,28 @@ PathLike = Union[str, bytes, pl.Path]
 T = TypeVar('T')
 Maybe = Union[T, None]
 
+logger = logging.getLogger(__name__)
+
+__all__ = ['sort_directory', 'sort_file']
+
+
+def _copy(self, target):
+    import shutil
+    assert self.is_file()
+    shutil.copy(self, target)
+
+
+# noinspection PyUnresolvedReferences
+pl.Path.copy = _copy
+
 
 def sort_directory(source_path: pl.Path,
-                   target_path: pl.Path,
+                   target_path: pl.Path=None,
                    remove_empty: bool=True,
-                   recursive=True):
+                   recursive=True,
+                   copy=False):
+    if not target_path:
+        target_path = source_path
     assert source_path.is_dir()
     assert target_path.is_dir()
     if recursive:
@@ -25,7 +43,7 @@ def sort_directory(source_path: pl.Path,
     directories_to_delete = set()
     for file in source_path.glob(glob_pattern):
         if file.name not in sorted_files:
-            new_file = sort_file(file, target_path)
+            new_file = sort_file(file, target_path, copy=copy)
             if new_file:
                 sorted_files.add(new_file)
             if remove_empty and is_empty_dir(file.parent):
@@ -36,7 +54,7 @@ def sort_directory(source_path: pl.Path,
 
 
 def sort_file(path: pl.Path, target_path: PathLike,
-              ) -> Maybe[pl.Path]:
+              copy=False) -> Maybe[pl.Path]:
     if not isinstance(path, pl.Path):
         path = pl.Path(str(path))
 
@@ -52,7 +70,10 @@ def sort_file(path: pl.Path, target_path: PathLike,
             new_path.parent.mkdir(parents=True)
         if new_path.exists():
             new_path = get_backup_path(new_path)
-        path.rename(new_path)
+        if copy:
+            path.copy(new_path)
+        else:
+            path.rename(new_path)
     return new_path
 
 
