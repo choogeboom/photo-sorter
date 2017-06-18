@@ -6,6 +6,7 @@ import re
 from typing import Union, TypeVar
 
 from exifread import process_file
+import click
 
 PathLike = Union[str, bytes, pl.Path]
 T = TypeVar('T')
@@ -16,7 +17,7 @@ logger = logging.getLogger(__name__)
 __all__ = ['sort_directory', 'sort_file']
 
 
-def _copy(self, target):
+def _copy(self, target: PathLike):
     import shutil
     assert self.is_file()
     shutil.copy(self, target)
@@ -26,8 +27,8 @@ def _copy(self, target):
 pl.Path.copy = _copy
 
 
-def sort_directory(source_path: pl.Path,
-                   target_path: pl.Path=None,
+def sort_directory(source_path: PathLike,
+                   target_path: PathLike=None,
                    remove_empty: bool=True,
                    recursive=True,
                    copy=False):
@@ -132,3 +133,10 @@ def get_file_date_from_mtime(path: pl.Path) -> Maybe[datetime.date]:
 def load_tags(path: pl.Path) -> dict:
     with open(path, 'rb') as image_file:
         return process_file(image_file)
+
+
+@click.command()
+@click.option('--copy/--no-copy', default=False)
+@click.argument('source_directory', type=click.Path(exists=True))
+def cli():
+    pass

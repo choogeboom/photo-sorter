@@ -1,3 +1,4 @@
 exifread
 pytest
 pytest-cov
+click
