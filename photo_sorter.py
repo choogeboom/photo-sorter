@@ -133,7 +133,7 @@ def get_file_date(path: pl.Path) -> Maybe[datetime.date]:
 
 
 def get_file_date_from_metadata(path: pl.Path) -> Maybe[datetime.date]:
-    if path.suffix in ('jpg', 'jpeg'):
+    if path.suffix.lower() in ('jpg', 'jpeg'):
         date_tag_names = ('EXIF DateTimeOriginal', 'EXIF DateTimeDigitized',
                           'Image DateTime')
         tags = load_tags(path)

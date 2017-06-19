@@ -25,17 +25,24 @@ def make_unsorted_tempdir(image_tempdir: pl.Path) -> pl.Path:
 
 
 @pytest.fixture(scope='function',
-                params=[('2014_04_21', datetime.date(2014, 4, 21)),
-                        ('2016_01_01', datetime.date(2016, 1, 1)),
-                        ('2016_04_01', datetime.date(2016, 4, 1)),
-                        ('2017_01_01', datetime.date(2017, 1, 1)),
-                        ('2017_01_11', datetime.date(2017, 1, 11)),
-                        ('2017_02_12', datetime.date(2017, 2, 12)),
-                        ('no_date', None)],
+                params=[('test_image_2014_04_21.jpeg',
+                         datetime.date(2014, 4, 21)),
+                        ('test_image_2016_01_01.jpeg',
+                         datetime.date(2016, 1, 1)),
+                        ('test_image_2016_04_01.jpeg',
+                         datetime.date(2016, 4, 1)),
+                        ('test_image_2017_01_01.jpeg',
+                         datetime.date(2017, 1, 1)),
+                        ('test_image_2017_01_11.jpeg',
+                         datetime.date(2017, 1, 11)),
+                        ('test_image_2017_02_12.jpeg',
+                         datetime.date(2017, 2, 12)),
+                        ('test_image_20140221.JPG',
+                         datetime.date(2014, 2, 21)),
+                        ('test_image_no_date.jpeg', None)],
                 name='test_image')
 def get_test_image(unsorted_tempdir: pl.Path, request):
-    test_image_path = unsorted_tempdir / f'test_image_{request.param[0]}.jpeg'
-    return {'path': test_image_path,
+    return {'path': unsorted_tempdir / request.param[0],
             'date': request.param[1]}
 
 
@@ -78,6 +85,6 @@ def count_files(path: pl.Path, include_directories=False):
 
 def test_sort_directory(unsorted_tempdir: pl.Path, image_tempdir: pl.Path):
     ps.sort_directory(unsorted_tempdir, image_tempdir)
-    assert count_files(image_tempdir) == 7
-    assert count_files(image_tempdir, True) == 23
+    assert count_files(image_tempdir) == 8
+    assert count_files(image_tempdir, True) == 26
 
