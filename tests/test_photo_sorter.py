@@ -6,6 +6,7 @@ import pytest
 import photo_sorter as ps
 
 test_file_dir = pl.Path('tests/files')
+ps.logger.setLevel('DEBUG')
 
 
 @pytest.fixture(scope='function', name='image_tempdir')
@@ -55,10 +56,13 @@ def test_sort_image(image_tempdir: pl.Path,
     new_path = ps.sort_file(test_image['path'], image_tempdir)
     date: datetime.date = test_image['date']
     if date:
-        expected_path = (image_tempdir / date.strftime('%Y') / date.strftime('%Y-%m')
-                         / date.strftime('%Y-%m-%d') / test_image['path'].name)
+        expected_path = (image_tempdir
+                         / date.strftime('%Y')
+                         / date.strftime('%Y-%m')
+                         / date.strftime('%Y-%m-%d')
+                         / test_image['path'].name)
     else:
-        expected_path = image_tempdir / 'Unknown' / test_image['path'].name
+        expected_path = image_tempdir / 'Unknown_Date' / test_image['path'].name
     assert new_path == expected_path
     assert ps.sort_file(new_path, image_tempdir) == new_path
 

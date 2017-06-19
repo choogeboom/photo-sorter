@@ -13,6 +13,8 @@ T = TypeVar('T')
 Maybe = Union[T, None]
 
 logger = logging.getLogger(__name__)
+if not logger.hasHandlers():
+    logger.addHandler(logging.StreamHandler())
 
 __all__ = ['sort_directory', 'sort_file']
 
@@ -32,10 +34,23 @@ def sort_directory(source_path: PathLike,
                    remove_empty: bool=True,
                    recursive=True,
                    copy=False):
+    if not isinstance(source_path, pl.Path):
+        source_path = pl.Path(str(source_path))
     if not target_path:
         target_path = source_path
+    if not isinstance(target_path, pl.Path):
+        target_path = pl.Path(str(target_path))
     assert source_path.is_dir()
     assert target_path.is_dir()
+    if source_path == target_path:
+        logger.info('='*20 + '\nSorting photos in "%s"', source_path)
+    else:
+        logger.info('='*20 + '\nSorting photos in "%s".\nOutputting to "%s"',
+                    source_path, target_path)
+    logger.debug('remove-empty: %s', remove_empty)
+    logger.debug('recursive: %s', recursive)
+    logger.debug('copy: %s', copy)
+    logger.info('='*20)
     if recursive:
         glob_pattern = '**/*.*'
     else:
@@ -50,7 +65,9 @@ def sort_directory(source_path: PathLike,
             if remove_empty and is_empty_dir(file.parent):
                 directories_to_delete.add(file.parent)
     for directory in directories_to_delete:
+        logger.info('Removing empty directories')
         if is_empty_dir(directory):
+            logger.debug('Removing empty directory: %s', directory)
             directory.rmdir()
 
 
@@ -58,23 +75,33 @@ def sort_file(path: pl.Path, target_path: PathLike,
               copy=False) -> Maybe[pl.Path]:
     if not isinstance(path, pl.Path):
         path = pl.Path(str(path))
-
+    logger.debug('Sorting file: %s', path)
     date = get_file_date(path)
+    logger.debug('Inferred date: %s', date)
     if date:
         new_path = (target_path / date.strftime('%Y') / date.strftime('%Y-%m')
                     / date.strftime('%Y-%m-%d') / path.name)
     else:
-        new_path = target_path / 'Unknown' / path.name
+        new_path = target_path / 'Unknown_Date' / path.name
 
     if new_path != path:
         if not new_path.parent.exists():
+            logger.debug('Creating new directory: %s', new_path.parent)
             new_path.parent.mkdir(parents=True)
         if new_path.exists():
-            new_path = get_backup_path(new_path)
+            backup_path = get_backup_path(new_path)
+            logger.warning('File "%s" already exists in "%s". Saving as "%s" '
+                           'instead.', new_path.name, new_path.parent,
+                           backup_path.name)
+            new_path = backup_path
         if copy:
+            logger.info('Copying "%s" to "%s"', new_path.name, new_path.parent)
             path.copy(new_path)
         else:
+            logger.info('Moving "%s" to "%s"', new_path.name, new_path.parent)
             path.rename(new_path)
+    else:
+        logger.debug('File already sorted.')
     return new_path
 
 
@@ -136,7 +163,30 @@ def load_tags(path: pl.Path) -> dict:
 
 
 @click.command()
-@click.option('--copy/--no-copy', default=False)
-@click.argument('source_directory', type=click.Path(exists=True))
-def cli():
-    pass
+@click.option('--copy/--move', '-c/-m', 'copy', default=False)
+@click.option('--output', '-o', 'target_path',
+              default=None,
+              type=click.Path(file_okay=False,
+                              dir_okay=True,
+                              writable=True,
+                              readable=True,
+                              resolve_path=True))
+@click.option('--remove-empty/--no-remove-empty', '-e/-E', default=True)
+@click.option('--logger-level', '-l',
+              default='info',
+              type=click.Choice(['debug', 'info', 'warning', 'error',
+                                 'critical']))
+@click.option('--recursive/--no-recursive', '-r/-R', default=True)
+@click.argument('source_path', type=click.Path(exists=True,
+                                               file_okay=False,
+                                               dir_okay=True,
+                                               writable=True,
+                                               readable=True,
+                                               resolve_path=True))
+def cli(source_path, target_path, remove_empty, copy, recursive, logger_level):
+    logger.setLevel(getattr(logging, logger_level.upper()))
+    sort_directory(source_path=source_path,
+                   target_path=target_path,
+                   remove_empty=remove_empty,
+                   recursive=recursive,
+                   copy=copy)
