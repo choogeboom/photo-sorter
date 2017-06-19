@@ -150,7 +150,10 @@ def get_file_date_from_filename(path: pl.Path) -> Maybe[datetime.date]:
     match = re.search(pattern, path.name)
     if match:
         date_kwargs = {k: int(v) for k, v in match.groupdict().items()}
-        return datetime.date(**date_kwargs)
+        try:
+            return datetime.date(**date_kwargs)
+        except ValueError:
+            return None
     else:
         return None
 
