@@ -37,7 +37,7 @@ def make_unsorted_tempdir(image_tempdir: pl.Path) -> pl.Path:
                          datetime.date(2017, 1, 11)),
                         ('test_image_2017_02_12.jpeg',
                          datetime.date(2017, 2, 12)),
-                        ('test_image_20140221.JPG',
+                        ('test_image_date_in_tags.JPG',
                          datetime.date(2014, 2, 21)),
                         ('test_image_no_date.jpeg', None)],
                 name='test_image')
