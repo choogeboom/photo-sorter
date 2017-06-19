@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='photo-sorter CLI',
-    version='0.1',
+    version='0.1.1',
     author='Christopher Hoogeboom',
     py_modules=['photo_sorter'],
     install_requires=[
