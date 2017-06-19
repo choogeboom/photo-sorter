@@ -87,4 +87,3 @@ def test_sort_directory(unsorted_tempdir: pl.Path, image_tempdir: pl.Path):
     ps.sort_directory(unsorted_tempdir, image_tempdir)
     assert count_files(image_tempdir) == 8
     assert count_files(image_tempdir, True) == 26
-
