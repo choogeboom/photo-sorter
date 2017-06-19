@@ -58,7 +58,7 @@ def sort_directory(source_path: PathLike,
     sorted_files = set()
     directories_to_delete = set()
     for file in source_path.glob(glob_pattern):
-        if file.name not in sorted_files:
+        if file not in sorted_files:
             new_file = sort_file(file, target_path, copy=copy)
             if new_file:
                 sorted_files.add(new_file)
@@ -69,6 +69,8 @@ def sort_directory(source_path: PathLike,
         if is_empty_dir(directory):
             logger.debug('Removing empty directory: %s', directory)
             directory.rmdir()
+    logger.info('='*20 + '\nSorting photos in "%s" completed successfully!',
+                source_path)
 
 
 def sort_file(path: pl.Path, target_path: PathLike,
