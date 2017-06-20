@@ -110,7 +110,7 @@ def sort_file(path: pl.Path, target_path: PathLike,
 def get_backup_path(path: pl.Path):
     def make_path(source_path: pl.Path, number: int):
         return source_path.with_name(
-            f'{source_path.stem}_{number}.{source_path.suffix}')
+            f'{source_path.stem}_{number}{source_path.suffix}')
 
     backup_count = 0
     new_path = make_path(path, backup_count)
